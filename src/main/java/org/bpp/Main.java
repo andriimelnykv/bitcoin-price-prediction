@@ -1,5 +1,6 @@
 package org.bpp;
 
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.bpp.integration.ChartService;
 import org.bpp.integration.CoinGeckoCommunicationService;
 import org.bpp.model.ChartPoint;
@@ -11,24 +12,34 @@ import java.util.stream.IntStream;
 public class Main {
 
     public static void main(String[] args) {
+        //fetching btc prices from API
         CoinGeckoCommunicationService coinGeckoCommunicationService = new CoinGeckoCommunicationService();
-        ChartService chartService = new ChartService();
-
         List<Double> bitcoinPricesForLastWeek = coinGeckoCommunicationService.getBitcoinUsdPricesForLastWeek();
-        //we'll use days (1,2,3..) for our regression for simplicity, can be replaced by dates, timestamp etc..
+
+        //we'll use days (1,2,3..) for our regression for simplicity - can be replaced by dates, timestamp etc..
         List<Double> daysForRegressionPrediction = IntStream.range(1, bitcoinPricesForLastWeek.size() + 1)
                 .mapToDouble(i -> (double) i).boxed()
                 .collect(Collectors.toList());
 
-        SimpleRegressionUa simpleRegression = new SimpleRegressionUa(daysForRegressionPrediction, bitcoinPricesForLastWeek);
-        Double predictedBitcoinPrice = simpleRegression.predictForValue(8);
-        System.out.println(predictedBitcoinPrice);
+        //creating regression and loading data
+        SimpleRegression simpleRegression1 = new SimpleRegression();
+        IntStream.range(0, bitcoinPricesForLastWeek.size())
+                .forEach(i -> simpleRegression1.addData(daysForRegressionPrediction.get(i), bitcoinPricesForLastWeek.get(i)));
 
-        List<ChartPoint> previousPrices = IntStream.range(0, bitcoinPricesForLastWeek.size()).boxed()
+
+        //predicting price
+        double predictedBitcoinPrice = simpleRegression1.predict(8);
+        System.out.println("Predicted price: " + predictedBitcoinPrice);
+
+        //creating chart points and url for the chart
+        List<ChartPoint> historicalPrices = IntStream.range(0, bitcoinPricesForLastWeek.size()).boxed()
                 .map(i -> ChartPoint.of(daysForRegressionPrediction.get(i), bitcoinPricesForLastWeek.get(i)))
                 .collect(Collectors.toList());
-        List<ChartPoint> linePoints = List.of(ChartPoint.of(1, simpleRegression.predictForValue(1)),
-                ChartPoint.of(8, simpleRegression.predictForValue(8)));
-        chartService.generatePredictedPriceChart(previousPrices, linePoints, ChartPoint.of(8, predictedBitcoinPrice));
+        List<ChartPoint> regressionLinePoints = List.of(ChartPoint.of(1, simpleRegression1.predict(1)),
+                ChartPoint.of(8, simpleRegression1.predict(8)));
+        ChartPoint predictedPricePoint = ChartPoint.of(8, predictedBitcoinPrice);
+
+        ChartService chartService = new ChartService();
+        chartService.generatePredictedPriceChart(historicalPrices, regressionLinePoints, predictedPricePoint);
     }
 }

@@ -41,13 +41,20 @@ public class ChartConfig {
             private final String borderColor;
             private final List<ChartPoint> data;
 
-            public ChartConfigDataDataset(String label, boolean showLine, int lineTension, double borderWidth, String borderColor, List<ChartPoint> data) {
+            private final boolean fill;
+
+            public ChartConfigDataDataset(String label, boolean showLine, int lineTension, double borderWidth, String borderColor, List<ChartPoint> data, boolean fill) {
                 this.label = label;
                 this.showLine = showLine;
                 this.lineTension = lineTension;
                 this.borderWidth = borderWidth;
                 this.borderColor = borderColor;
                 this.data = data;
+                this.fill = fill;
+            }
+
+            public boolean isFill() {
+                return fill;
             }
 
             public String getLabel() {

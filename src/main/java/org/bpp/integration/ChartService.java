@@ -16,15 +16,18 @@ public class ChartService {
     public ChartService() {
     }
 
-    public void generatePredictedPriceChart(List<ChartPoint> inputPrices,
-                                            List<ChartPoint> linePoints,
+    public void generatePredictedPriceChart(List<ChartPoint> historicalPrices,
+                                            List<ChartPoint> regressionLinePoints,
                                             ChartPoint predictedPricePoint) {
         QuickChart quickChart = new QuickChart();
+        quickChart.setHeight(500);
+        quickChart.setWidth(1000);
+
         String configString = JsonMapper.mapObject(new ChartConfig(ChartType.scatter, new ChartConfigData(List.of(
-                new ChartConfigDataDataset("Previous prices", false, 0, 0.1, "blue", inputPrices),
-                new ChartConfigDataDataset("Regression line", true, 0, 0.1, "red", linePoints),
-                new ChartConfigDataDataset("Predicted price", false, 0, 1, "yellow", List.of(predictedPricePoint))))));
+                new ChartConfigDataDataset("Previous prices", false, 0, 0.1, "blue", historicalPrices, false),
+                new ChartConfigDataDataset("Regression line", true, 0, 0.5, "red", regressionLinePoints, false),
+                new ChartConfigDataDataset("Predicted price", false, 0, 1, "yellow", List.of(predictedPricePoint), false)))));
         quickChart.setConfig(configString);
-        System.out.println(quickChart.getUrl());
+        System.out.println("Chart link: " + quickChart.getUrl());
     }
 }
